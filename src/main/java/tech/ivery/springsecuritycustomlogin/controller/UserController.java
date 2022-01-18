@@ -7,16 +7,18 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import tech.ivery.springsecuritycustomlogin.models.AuthenticationRequest;
 import tech.ivery.springsecuritycustomlogin.models.AuthenticationResponse;
 import tech.ivery.springsecuritycustomlogin.utility.JwtUtil;
 
-@Controller
+@CrossOrigin(origins ="http://localhost:4200")
+@RestController
 public class UserController {
 	@Autowired
 	private AuthenticationManager authenticationManager;
@@ -31,7 +33,7 @@ public class UserController {
 	}
 	
 	@PostMapping("/authenticate")
-	public ResponseEntity<?> createAuthenticationToken(@RequestBody AuthenticationRequest request) throws Exception{
+	public ResponseEntity<AuthenticationResponse> createAuthenticationToken(@RequestBody AuthenticationRequest request) throws Exception{
 		try{
 			authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(),request.getPassword()));
 		}catch(BadCredentialsException e) {
@@ -40,6 +42,8 @@ public class UserController {
 		
 		final UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
 		final String jwt = jwtTokenUtil.generateToken(userDetails);
+		AuthenticationResponse response = new AuthenticationResponse(jwt);
+		System.out.println(response);
 		return ResponseEntity.ok(new AuthenticationResponse(jwt));
 	}
 }
